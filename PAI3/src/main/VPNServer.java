@@ -1,6 +1,7 @@
 package main;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,7 +38,7 @@ public class VPNServer {
 
 	// Constructor
 	public VPNServer() throws Exception {
-		System.setProperty("javax.net.ssl.keyStore", "./SSLStore");
+		System.setProperty("javax.net.ssl.keyStore", "SSLStore");
 		System.setProperty("javax.net.ssl.keyStorePassword", "SSII1617");
 		// ServerSocketFactory para construir los ServerSockets
 		SSLServerSocketFactory socketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();

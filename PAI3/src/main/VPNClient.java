@@ -14,10 +14,14 @@ public class VPNClient {
 		// Constructor que abre una conexión Socket para enviar mensaje/MAC al
 		// servidor
 		try {
-			System.setProperty("javax.net.ssl.trustStore", "./SSLStore");
+			System.setProperty("javax.net.ssl.trustStore", "SSLStore");
 			System.setProperty("javax.net.ssl.trustStorePassword", "SSII1617");
 			SSLSocketFactory socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+			System.out.println(socketFactory.getDefaultCipherSuites());
+			System.out.println(socketFactory.getSupportedCipherSuites());
 			SSLSocket socket = (SSLSocket) socketFactory.createSocket("localhost", 7070);
+			System.out.println(socket.getEnabledCipherSuites());
+			socket.startHandshake();
 			// crea un PrintWriter para enviar mensaje/MAC al servidor
 			PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 
