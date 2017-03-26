@@ -9,11 +9,13 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.swing.JOptionPane;
 
-public class IntegrityVerifierClient {
-	public IntegrityVerifierClient() {
+public class VPNClient {
+	public VPNClient() {
 		// Constructor que abre una conexión Socket para enviar mensaje/MAC al
 		// servidor
 		try {
+			System.setProperty("javax.net.ssl.trustStore", "./SSLStore");
+			System.setProperty("javax.net.ssl.trustStorePassword", "SSII1617");
 			SSLSocketFactory socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 			SSLSocket socket = (SSLSocket) socketFactory.createSocket("localhost", 7070);
 			// crea un PrintWriter para enviar mensaje/MAC al servidor
@@ -25,10 +27,9 @@ public class IntegrityVerifierClient {
 			
 			String userName = JOptionPane.showInputDialog(null, "Introduzca su usuario:");
 			String password = JOptionPane.showInputDialog(null, "Introduzca su contraseña:");
-			String mensaje = JOptionPane.showInputDialog(null, "Introduzca su usuario:");
-			output.println(userName);
-			output.println(password);
-			output.println(mensaje);
+			String mensaje = JOptionPane.showInputDialog(null, "Introduzca su mensaje:");
+			
+			output.println(userName + "/%%/" + password + "/%%/" + mensaje);
 			// habría que calcular el correspondiente MAC con la clave
 			// compartida por servidor/cliente
 
@@ -52,6 +53,6 @@ public class IntegrityVerifierClient {
 
 
 	public static void main(String args[]) {
-		new IntegrityVerifierClient();
+		new VPNClient();
 	}
 }
