@@ -1,7 +1,6 @@
 package main;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,8 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,6 +17,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -27,9 +25,10 @@ import java.util.stream.Collectors;
 
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
 
 public class VPNServer {
-	private ServerSocket serverSocket;
+	private SSLServerSocket serverSocket;
 
 	protected String usuario = "user";
 	protected String password = "pass";
@@ -44,7 +43,11 @@ public class VPNServer {
 		SSLServerSocketFactory socketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 		// creación de un objeto ServerSocket escuchando peticiones en el puerto
 		// 7070
+//		System.out.println( "Default cipher Suites: " + Arrays.toString(socketFactory.getDefaultCipherSuites()));
+		System.out.println("Supported: "+ Arrays.toString(socketFactory.getSupportedCipherSuites()));
 		serverSocket = (SSLServerSocket) socketFactory.createServerSocket(7070);
+		
+
 
 	}
 
@@ -54,34 +57,37 @@ public class VPNServer {
 			// espera las peticiones del cliente para comprobar mensaje/MAC
 			try {
 				System.err.println("Esperando conexiones de clientes...");
-				Socket socket = (Socket) serverSocket.accept();
-				// abre un BufferedReader para leer los datos del cliente
-				BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				// abre un PrintWriter para enviar datos al cliente
-				PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-				// se lee del cliente el mensaje y el macdelMensajeEnviado
+				SSLSocket socket = (SSLSocket) serverSocket.accept();
 				
-				if (input.ready()) {
-					String text = input.readLine();
-					String[] message = text.split("/%%/");
-					if (message[0] != this.usuario) {
-						output.println("Usuario incorrecto");
-					} else if (message[1] != this.password)
-						output.println("Contraseña incorrecta");
-					else
-						output.println("Mensaje recibido");
-
-					// Aseguramos la integridad del fichero de transacciones, si
-					// no,
+				InputStream inputstream = socket.getInputStream();
+				InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
+				BufferedReader input = new BufferedReader(inputstreamreader);
+				
+				
+				PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+				String text;
+				while ((text = input.readLine()) != null) {
+					String[] message = text.trim().split(";;");
+					String details;
+					if (!(details = message[0].trim()).equals(this.usuario)) {
+						output.write("Usuario incorrecto" + "\n");
+						output.flush();
+					} else if (!(details = message[1].trim()).equals(this.password)){
+						output.write("Contraseña incorrecta" + '\n');
+						output.flush();
+					}else{
+						output.write("Mensaje recibido" + "\n");
+						output.flush();
+					}
+					// Aseguramos la integridad del fichero de transacciones, si no,
 					// creamos un mensaje de error
-					if (VPNServer.hash != null && VPNServer.hash != hashFile("mensajes.properties")) {
+					String hashCheck = hashFile("mensajes.properties");
+					if (VPNServer.hash != null && !VPNServer.hash.equals(hashCheck)) {
 						createError("Se ha perdido la integridad del fichero de transacciones");
 					}
-					// Creamos un fichero properties para guardar las
-					// transacciones
+					// Creamos un fichero properties para guardar las transacciones
 					// asociadas con el usuario.
-					// Esto se hace como sustituto a una base de datos que
-					// tendrían
+					// Esto se hace como sustituto a una base de datos que tendrían
 					// los clientes, por lo que es útil para testear
 
 					Properties prop = new Properties();
@@ -95,6 +101,7 @@ public class VPNServer {
 					output.close();
 					input.close();
 					socket.close();
+					break;
 				}
 			} catch (IOException ioException) {
 				ioException.printStackTrace();
@@ -133,7 +140,7 @@ public class VPNServer {
 			hash = complete.digest();
 			hashed = this.byteArrayToHexString(hash);
 		} catch (NoSuchAlgorithmException e) {
-
+			e.printStackTrace();
 		} catch (IOException e) {
 
 		}
