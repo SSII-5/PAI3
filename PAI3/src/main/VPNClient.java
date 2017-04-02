@@ -17,7 +17,7 @@ public class VPNClient {
 		// Constructor que abre una conexión Socket para enviar mensaje/MAC al
 		// servidor
 		try {
-			System.setProperty("javax.net.ssl.trustStore", "SSLStore");
+			System.setProperty("javax.net.ssl.trustStore", "C:\\SSLStore");
 			System.setProperty("javax.net.ssl.trustStorePassword", "SSII1617");
 //			System.setProperty("javax.net.debug", "ssl,handshake");
 			SSLSocketFactory socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();

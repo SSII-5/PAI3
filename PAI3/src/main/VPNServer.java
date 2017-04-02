@@ -37,7 +37,7 @@ public class VPNServer {
 
 	// Constructor
 	public VPNServer() throws Exception {
-		System.setProperty("javax.net.ssl.keyStore", "SSLStore");
+		System.setProperty("javax.net.ssl.keyStore", "C:\\SSLStore");
 		System.setProperty("javax.net.ssl.keyStorePassword", "SSII1617");
 		// ServerSocketFactory para construir los ServerSockets
 		SSLServerSocketFactory socketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
@@ -78,26 +78,30 @@ public class VPNServer {
 					}else{
 						output.write("Mensaje recibido" + "\n");
 						output.flush();
+						// Si se ha recibido el mensaje, se hace la comprobación de la integridad
+						// previamente a guardar el mensaje.
+						
+						String hashCheck = hashFile("mensajes.properties");
+						if (VPNServer.hash != null && !VPNServer.hash.equals(hashCheck)) {
+							createError("Se ha perdido la integridad del fichero de transacciones");
+						}
+						// Creamos un fichero properties para guardar las transacciones
+						// asociadas con el usuario.
+						// Esto se hace como sustituto a una base de datos que tendrían
+						// los clientes, por lo que es útil para testear
+
+						Properties prop = new Properties();
+						InputStream in = new FileInputStream("mensajes.properties");
+						OutputStream out = new FileOutputStream("mensajes.properties");
+						prop.load(in);
+						prop.setProperty(message[0], message[2]);
+						prop.store(out, null);
+
+						VPNServer.hash = hashFile("mensajes.properties");
 					}
 					// Aseguramos la integridad del fichero de transacciones, si no,
 					// creamos un mensaje de error
-					String hashCheck = hashFile("mensajes.properties");
-					if (VPNServer.hash != null && !VPNServer.hash.equals(hashCheck)) {
-						createError("Se ha perdido la integridad del fichero de transacciones");
-					}
-					// Creamos un fichero properties para guardar las transacciones
-					// asociadas con el usuario.
-					// Esto se hace como sustituto a una base de datos que tendrían
-					// los clientes, por lo que es útil para testear
-
-					Properties prop = new Properties();
-					InputStream in = new FileInputStream("mensajes.properties");
-					OutputStream out = new FileOutputStream("mensajes.properties");
-					prop.load(in);
-					prop.setProperty(message[0], message[2]);
-					prop.store(out, null);
-
-					VPNServer.hash = hashFile("mensajes.properties");
+					
 					output.close();
 					input.close();
 					socket.close();
