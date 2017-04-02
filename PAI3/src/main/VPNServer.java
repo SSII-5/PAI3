@@ -44,7 +44,7 @@ public class VPNServer {
 		// creación de un objeto ServerSocket escuchando peticiones en el puerto
 		// 7070
 //		System.out.println( "Default cipher Suites: " + Arrays.toString(socketFactory.getDefaultCipherSuites()));
-		System.out.println("Supported: "+ Arrays.toString(socketFactory.getSupportedCipherSuites()));
+//		System.out.println("Supported: "+ Arrays.toString(socketFactory.getSupportedCipherSuites()));
 		serverSocket = (SSLServerSocket) socketFactory.createServerSocket(7070);
 		
 
