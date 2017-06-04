@@ -59,6 +59,7 @@ public class VPNServer {
 			// espera las peticiones del cliente para comprobar mensaje/MAC
 			try {
 				System.err.println("Esperando conexiones de clientes...");
+				
 				SSLSocket socket = (SSLSocket) serverSocket.accept();
 				
 				InputStream inputstream = socket.getInputStream();
