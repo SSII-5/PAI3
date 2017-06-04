@@ -1,8 +1,11 @@
 package main;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,7 +20,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -81,23 +83,33 @@ public class VPNServer {
 						// Si se ha recibido el mensaje, se hace la comprobación de la integridad
 						// previamente a guardar el mensaje.
 						
-						String hashCheck = hashFile("mensajes.properties");
-						if (VPNServer.hash != null && !VPNServer.hash.equals(hashCheck)) {
-							createError("Se ha perdido la integridad del fichero de transacciones");
-						}
+						
 						// Creamos un fichero properties para guardar las transacciones
 						// asociadas con el usuario.
 						// Esto se hace como sustituto a una base de datos que tendrían
 						// los clientes, por lo que es útil para testear
-
-						Properties prop = new Properties();
-						InputStream in = new FileInputStream("mensajes.properties");
-						OutputStream out = new FileOutputStream("mensajes.properties");
-						prop.load(in);
-						prop.setProperty(message[0], message[2]);
-						prop.store(out, null);
-
-						VPNServer.hash = hashFile("mensajes.properties");
+						try{
+							String hashCheck = hashFile("mensajes.txt");
+							if (VPNServer.hash != null && !VPNServer.hash.equals(hashCheck)) {
+								createError("Se ha perdido la integridad del fichero de transacciones");
+							}
+							FileWriter fw = new FileWriter("mensajes.txt", true);
+							BufferedWriter bw = new BufferedWriter(fw);
+							PrintWriter pw = new PrintWriter(bw);
+							pw.println(message[0] + " = " + message[2]);
+							pw.flush();
+							VPNServer.hash = hashFile("mensajes.txt");
+							fw.close();
+							
+						}
+						catch(FileNotFoundException e){
+							FileWriter fw = new FileWriter("mensajes.txt", true);
+							BufferedWriter bw = new BufferedWriter(fw);
+							PrintWriter pw = new PrintWriter(bw);
+							pw.println(message[0] + " = " + message[2]);
+							VPNServer.hash = hashFile("mensajes.txt");
+							fw.close();
+						}
 					}
 					// Aseguramos la integridad del fichero de transacciones, si no,
 					// creamos un mensaje de error
@@ -208,5 +220,16 @@ public class VPNServer {
 
 	public void setExecutionPath() {
 		this.executionPath = System.getProperty("user.dir");
+	}
+	
+	public static void AddText(OutputStream output, String text){
+		byte[] content = text.getBytes(Charset.defaultCharset());
+		
+		try {
+			output.write(content, 0, content.length);
+		} catch (IOException e) {
+			
+		}
+		
 	}
 }
